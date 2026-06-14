@@ -75,7 +75,8 @@ plugin_LTLIBRARIES = @SASL_MECHS@
 
 EXTRA_LTLIBRARIES = libplain.la libanonymous.la \
 	libgs2.la libgssapiv2.la libsrp.la libotp.la \
-	libscram.la libpassdss.la libsasldb.la libsql.la libldapdb.la libopaque.la
+	libscram.la libpassdss.la libsasldb.la libsql.la libldapdb.la libopaque.la \
+	liboauthbearer.la
 
 libplain_la_SOURCES = plain.c plain_init.c
 libplain_la_DEPENDENCIES = $(COMPAT_OBJS) $(PLUGIN_COMMON_OBJS)
@@ -128,12 +129,16 @@ libsql_la_LDFLAGS = $(LIB_MYSQL) $(LIB_PGSQL) $(LIB_SQLITE) $(LIB_SQLITE3) \
 libsql_la_DEPENDENCIES = $(COMPAT_OBJS) $(PLUGIN_COMMON_OBJS)
 libsql_la_LIBADD = $(COMPAT_OBJS) $(PLUGIN_COMMON_OBJS)
 
+liboauthbearer_la_SOURCES = oauthbearer.c oauthbearer_init.c
+liboauthbearer_la_DEPENDENCIES = $(COMPAT_OBJS) $(PLUGIN_COMMON_OBJS)
+liboauthbearer_la_LIBADD = $(LIB_SOCKET) $(COMPAT_OBJS) $(PLUGIN_COMMON_OBJS)
+
 # Instructions for making the _init files
 
 init_src=anonymous_init.c scram_init.c gs2_init.c gssapiv2_init.c \
 plain_init.c srp_init.c opaque_init.c otp_init.c \
-passdss_init.c sasldb_init.c sql_init.c ldapdb_init.c
-
+passdss_init.c sasldb_init.c sql_init.c ldapdb_init.c \
+oauthbearer_init.c
 
 CLEANFILES=$(init_src)
 
