@@ -82,6 +82,10 @@ libplain_la_SOURCES = plain.c plain_init.c
 libplain_la_DEPENDENCIES = $(COMPAT_OBJS) $(PLUGIN_COMMON_OBJS)
 libplain_la_LIBADD = $(LIB_SOCKET) $(COMPAT_OBJS) $(PLUGIN_COMMON_OBJS)
 
+liboauthbearer_la_SOURCES = oauthbearer.c oauthbearer_init.c
+liboauthbearer_la_DEPENDENCIES = $(COMPAT_OBJS) $(PLUGIN_COMMON_OBJS)
+liboauthbearer_la_LIBADD = $(LIB_SOCKET) $(COMPAT_OBJS) $(PLUGIN_COMMON_OBJS)
+
 libanonymous_la_SOURCES = anonymous.c anonymous_init.c
 libanonymous_la_DEPENDENCIES = $(COMPAT_OBJS) $(PLUGIN_COMMON_OBJS)
 libanonymous_la_LIBADD = $(LIB_SOCKET) $(COMPAT_OBJS) $(PLUGIN_COMMON_OBJS)
@@ -128,10 +132,6 @@ libsql_la_LDFLAGS = $(LIB_MYSQL) $(LIB_PGSQL) $(LIB_SQLITE) $(LIB_SQLITE3) \
 	$(AM_LDFLAGS)
 libsql_la_DEPENDENCIES = $(COMPAT_OBJS) $(PLUGIN_COMMON_OBJS)
 libsql_la_LIBADD = $(COMPAT_OBJS) $(PLUGIN_COMMON_OBJS)
-
-liboauthbearer_la_SOURCES = oauthbearer.c oauthbearer_init.c
-liboauthbearer_la_DEPENDENCIES = $(COMPAT_OBJS) $(PLUGIN_COMMON_OBJS)
-liboauthbearer_la_LIBADD = $(LIB_SOCKET) $(COMPAT_OBJS) $(PLUGIN_COMMON_OBJS)
 
 # Instructions for making the _init files
 

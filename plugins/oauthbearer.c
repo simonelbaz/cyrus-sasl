@@ -51,7 +51,7 @@
 #include "plugin_common.h"
 
 #ifdef macintosh 
-#include <sasl_plain_plugin_decl.h> 
+#include <sasl_oauthbearer_plugin_decl.h> 
 #endif 
 
 /*****************************  Common Section  *****************************/
@@ -75,7 +75,7 @@ static int oauthbearer_server_mech_new(void *glob_context __attribute__((unused)
     return SASL_OK;
 }
 
-static int oautbearer_server_mech_step(void *conn_context __attribute__((unused)),
+static int oauthbearer_server_mech_step(void *conn_context __attribute__((unused)),
 				  sasl_server_params_t *params,
 				  const char *clientin,
 				  unsigned clientinlen,
@@ -126,7 +126,7 @@ static int oautbearer_server_mech_step(void *conn_context __attribute__((unused)
     
     if (lup != clientinlen) {
 	SETERROR(params->utils,
-		 "Got more data than we were expecting in the PLAIN plugin\n");
+		 "Got more data than we were expecting in the OAUTHBEARER plugin\n");
 	return SASL_BADPROT;
     }
     
@@ -256,7 +256,7 @@ int oauthbearer_server_plug_init(const sasl_utils_t *utils,
 			   int *plugcount)
 {
     if (maxversion < SASL_SERVER_PLUG_VERSION) {
-	SETERROR(utils, "PLAIN version mismatch");
+	SETERROR(utils, "OAUTHBEARER version mismatch");
 	return SASL_BADVERS;
     }
     
@@ -320,7 +320,7 @@ static int oauthbearer_client_mech_step(void *conn_context,
     
     /* check if sec layer strong enough */
     if (params->props.min_ssf > params->external_ssf) {
-	SETERROR( params->utils, "SSF requested of PLAIN plugin");
+	SETERROR( params->utils, "SSF requested of OAUTHBEARER plugin");
 	return SASL_TOOWEAK;
     }
     
@@ -459,9 +459,9 @@ static sasl_client_plug_t oauthbearer_client_plugins[] =
 	| SASL_FEAT_ALLOWS_PROXY,	/* features */
 	NULL,				/* required_prompts */
 	NULL,				/* glob_context */
-	&plain_client_mech_new,		/* mech_new */
-	&plain_client_mech_step,	/* mech_step */
-	&plain_client_mech_dispose,	/* mech_dispose */
+	&oauthbearer_client_mech_new,		/* mech_new */
+	&oauthbearer_client_mech_step,	/* mech_step */
+	&oauthbearer_client_mech_dispose,	/* mech_dispose */
 	NULL,				/* mech_free */
 	NULL,				/* idle */
 	NULL,				/* spare */
@@ -476,7 +476,7 @@ int oauthbearer_client_plug_init(sasl_utils_t *utils,
 			   int *plugcount)
 {
     if (maxversion < SASL_CLIENT_PLUG_VERSION) {
-	SETERROR(utils, "PLAIN version mismatch");
+	SETERROR(utils, "OAUTHBEARER version mismatch");
 	return SASL_BADVERS;
     }
     

@@ -42,7 +42,7 @@ dnl AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING
 dnl OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 dnl
 
-AC_PREREQ([2.73])
+AC_PREREQ([2.69])
 
 dnl
 dnl REMINDER: When changing the version number here, please also update
@@ -564,6 +564,9 @@ AC_SUBST(LIB_PAM)
 
 dnl PLAIN
 SASL_PLAIN_CHK
+
+dnl OAUTBEARER
+SASL_OAUTHBEARER_CHK
 
 dnl ANONYMOUS
 AC_ARG_ENABLE(anon, [  --enable-anon           enable ANONYMOUS authentication [[yes]] ],
