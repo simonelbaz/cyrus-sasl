@@ -421,6 +421,23 @@ def gssapi_tests(testdir):
     os.killpg(kdc.pid, signal.SIGTERM)
     return err
 
+def setup_oauthbearer(testdir):
+    """ Create sasldb file """
+    sasldbfile = os.path.join(testdir, 'testsasldb.db')
+
+    sasldbenv = {'SASL_PATH': os.path.join(testdir, '../../plugins/.libs'),
+                 'LD_LIBRARY_PATH' : os.path.join(testdir, '../../lib/.libs')}
+
+    passwdprog = os.path.join(testdir, '../../utils/saslpasswd2')
+
+    echo = subprocess.Popen(('echo', 'bixhPWRhbmllbC5qYWNrc29uLAFob3N0PXNlcnZlci5leGFtcGxlLmNvbQFwb3J0PTE0MwFhdXRoPUJlYXJlciBiM2Q0YWNjYjlhNWVlODQyNDc2MzA1ZmI0ODAwNTFmNDNkYzAzNDYyNThiZWNjZTQ4OWFkZDg3NWM1NjBiNzJlAQEK'), stdout=subprocess.PIPE)
+    subprocess.check_call([
+        passwdprog, "-f", sasldbfile, "-c", "test",
+        "-u", "host.realm.test", "-p"
+        ], stdin=echo.stdout, env=sasldbenv, timeout=5)
+
+    return (sasldbfile, sasldbenv)
+
 def setup_plain(testdir):
     """ Create sasldb file """
     sasldbfile = os.path.join(testdir, 'testsasldb.db')
@@ -439,6 +456,30 @@ def setup_plain(testdir):
     return (sasldbfile, sasldbenv)
 
 def plain_test(sasldbfile, sasldbenv):
+    try:
+        srv = subprocess.Popen(["../tests/t_gssapi_srv", "-P", sasldbfile],
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, env=sasldbenv)
+        srv.stdout.readline() # Wait for srv to say it is ready
+        cli = subprocess.Popen(["../tests/t_gssapi_cli", "-P", "1234567"],
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, env=sasldbenv)
+        try:
+            cli.wait(timeout=5)
+            srv.wait(timeout=5)
+        except Exception as e:
+            print("Failed on {}".format(e));
+            cli.kill()
+            srv.kill()
+        if cli.returncode != 0 or srv.returncode != 0:
+            raise Exception("CLI ({}): {} --> SRV ({}): {}".format(
+                cli.returncode, cli.stderr.read().decode('utf-8'),
+                srv.returncode, srv.stderr.read().decode('utf-8')))
+    except Exception as e:
+        print("FAIL: {}".format(e))
+        return
+
+def oauthbearer_test(sasldbfile, sasldbenv):
     try:
         srv = subprocess.Popen(["../tests/t_gssapi_srv", "-P", sasldbfile],
                                stdout=subprocess.PIPE,
@@ -501,6 +542,13 @@ def plain_mismatch_test(sasldbfile, sasldbenv):
         srv.stdout.read().decode('utf-8').strip()))
     return
 
+def oauthbearer_tests(testdir):
+    sasldbfile, sasldbenv = setup_oauthbearer(testdir)
+    #print("DB file: {}, ENV: {}".format(sasldbfile, sasldbenv))
+    print('SASLDB OAUTBEARER:')
+    print('    ', end='')
+    oauthbearer_test(sasldbfile, sasldbenv)
+
 def plain_tests(testdir):
     sasldbfile, sasldbenv = setup_plain(testdir)
     #print("DB file: {}, ENV: {}".format(sasldbfile, sasldbenv))
@@ -526,6 +574,8 @@ if __name__ == "__main__":
     os.makedirs(T)
 
     plain_tests(T)
+
+    oauthbearer_tests(T)
 
     err = gssapi_tests(T)
     if err != 0:

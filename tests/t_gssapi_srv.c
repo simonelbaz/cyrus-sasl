@@ -114,10 +114,11 @@ int main(int argc, char *argv[])
     int c, r;
     const char *sasl_mech = "GSSAPI";
     int plain = 0;
+    int oauthbearer = 1;
     bool spnego = false;
     bool zeromaxssf = false;
 
-    while ((c = getopt(argc, argv, "ac:k:p:P:zN")) != EOF) {
+    while ((c = getopt(argc, argv, "ac:k:p:P:O:zN")) != EOF) {
         switch (c) {
         case 'c':
             parse_cb(&cb, cb_buf, 256, optarg);
@@ -130,6 +131,10 @@ int main(int argc, char *argv[])
             break;
         case 'P':
             plain = 1;
+            sasldb_path = optarg;
+            break;
+        case 'O':
+            oauthbearer = 1;
             sasldb_path = optarg;
             break;
         case 'z':
@@ -170,6 +175,10 @@ int main(int argc, char *argv[])
 
     if (plain) {
         sasl_mech = "PLAIN";
+    }
+
+    if (oauthbearer) {
+        sasl_mech = "OAUTHBEARER";
     }
 
     if (spnego) {

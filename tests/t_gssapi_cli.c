@@ -1,6 +1,7 @@
 /* Copyright (C) Simo Sorce <simo@redhat.com>
  * See COPYING file for License */
 
+#include "sasl.h"
 #include "t_common.h"
 
 #include <stdlib.h>
@@ -102,10 +103,11 @@ int main(int argc, char *argv[])
     int c, r;
     const char *sasl_mech = "GSSAPI";
     int plain = 0;
+    int oauthbearer = 0;
     bool spnego = false;
     bool zeromaxssf = false;
 
-    while ((c = getopt(argc, argv, "c:h:P:zN")) != EOF) {
+    while ((c = getopt(argc, argv, "c:h:P:O:zN")) != EOF) {
         switch (c) {
         case 'c':
             parse_cb(&cb, cb_buf, 256, optarg);
@@ -115,6 +117,10 @@ int main(int argc, char *argv[])
 	    break;
         case 'P':
             plain = 1;
+            testpass = optarg;
+            break;
+        case 'O':
+            oauthbearer = 1;
             testpass = optarg;
             break;
         case 'z':
@@ -150,6 +156,13 @@ int main(int argc, char *argv[])
 
         callbacks[2].id = SASL_CB_PASS;
         callbacks[2].proc = (sasl_callback_ft)&get_pass;
+    }
+
+    if (oauthbearer) {
+        sasl_mech = "OAUTHBEARER";
+
+        callbacks[1].id = SASL_CB_PASS;
+        callbacks[1].proc = (sasl_callback_ft)&get_pass;
     }
 
     r = sasl_client_init(callbacks);
