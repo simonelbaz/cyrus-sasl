@@ -451,7 +451,7 @@ static void oauthbearer_client_mech_dispose(void *conn_context,
 static sasl_client_plug_t oauthbearer_client_plugins[] = 
 {
     {
-	"OAUTBEARER",			/* mech_name */
+	"OAUTHBEARER",			/* mech_name */
 	0,				/* max_ssf */
 	SASL_SEC_NOANONYMOUS
 	| SASL_SEC_PASS_CREDENTIALS,	/* security_flags */
