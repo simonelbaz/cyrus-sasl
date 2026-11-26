@@ -89,10 +89,10 @@ static int oauthbearer_server_mech_step(void *conn_context __attribute__((unused
     const char *auth;
     unsigned char field_sep = 0x01;
     
-    unsigned password_len;
+    unsigned auth_len;
     unsigned lup = 0;
     int result;
-    char *passcopy; 
+    char *authcopy;
     unsigned canon_flags = 0;
 
     *serverout = NULL;
@@ -103,17 +103,44 @@ static int oauthbearer_server_mech_step(void *conn_context __attribute__((unused
     
     /* get ncommaa */
     ncommaa = clientin;
-    while ((lup < clientinlen) && (clientin[lup] != field_sep)) ++lup;
+    while ((lup < clientinlen) && (clientin[lup] != field_sep) && (clientin[lup] != 0)) ++lup;
     
     if (lup >= clientinlen) {
-	SETERROR(params->utils, "Can only find author (no password)");
+	SETERROR(params->utils, "Can only find ncommaa (no host)");
 	return SASL_BADPROT;
     }
     
-    /* get authen */
+    /* get host */
     ++lup;
-    authen = clientin + lup;
-    while ((lup < clientinlen) && (clientin[lup] != 0)) ++lup;
+    host = clientin + lup;
+    while ((lup < clientinlen) && (clientin[lup] != field_sep) && (clientin[lup] != 0)) ++lup;
+    
+    if (lup >= clientinlen) {
+	SETERROR(params->utils, "Can only find ncommaa, host (no port)");
+	return SASL_BADPROT;
+    }
+    
+    /* get port */
+    ++lup;
+    port = clientin + lup;
+    while ((lup < clientinlen) && (clientin[lup] != field_sep) && (clientin[lup] != 0)) ++lup;
+    
+    if (lup >= clientinlen) {
+	params->utils->seterror(params->utils->conn, 0,
+				"Can only find ncomma, host, port (no auth)");
+	return SASL_BADPROT;
+    }
+    
+    /* get auth */
+    ++lup;
+    auth = clientin + lup;
+    while ((lup < clientinlen) && (clientin[lup] != field_sep) && (clientin[lup] != 0)) ++lup;
+    
+    if (lup >= clientinlen) {
+	params->utils->seterror(params->utils->conn, 0,
+				"Can only find ncomma, host, port (no password)");
+	return SASL_BADPROT;
+    }
     
     if (lup >= clientinlen) {
 	params->utils->seterror(params->utils->conn, 0,
@@ -121,32 +148,29 @@ static int oauthbearer_server_mech_step(void *conn_context __attribute__((unused
 	return SASL_BADPROT;
     }
     
-    /* get password */
+    /* get auth */
     lup++;
-    password = clientin + lup;
-    while ((lup < clientinlen) && (clientin[lup] != 0)) ++lup;
+    auth = clientin + lup;
+    while ((lup < clientinlen) && (clientin[lup] != field_sep) && (clientin[lup] != 0)) ++lup;
     
-    password_len = (unsigned) (clientin + lup - password);
+    auth_len = (unsigned) (clientin + lup - auth);
     
     if (lup != clientinlen) {
 	SETERROR(params->utils,
-		 "Got more data than we were expecting in the PLAIN plugin\n");
+		 "Got more data than we were expecting in the OAUTHBEARER plugin\n");
 	return SASL_BADPROT;
     }
 
-    /* RFC 4616 section 2: if the password is empty, verification SHALL
-       fail.  Don't pass it to the verifier, which may accept an empty
-       stored password or treat it as an anonymous bind. */
-    if (password_len == 0) {
-	SETERROR(params->utils, "Empty password in the PLAIN plugin");
+    if (auth_len == 0) {
+	SETERROR(params->utils, "Empty auth in the OAUTHBEARER plugin");
 	return SASL_BADAUTH;
     }
     
     /* this kinda sucks. we need password to be null terminated
        but we can't assume there is an allocated byte at the end
        of password so we have to copy it */
-    passcopy = params->utils->malloc(password_len + 1);    
-    if (passcopy == NULL) {
+    authcopy = params->utils->malloc(auth_len + 1);    
+    if (authcopy == NULL) {
 	MEMERROR(params->utils);
 	return SASL_NOMEM;
     }
